@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="An evidence-backed, filterable list of AI product management opportunities in Europe.">
+    <meta name="description" content="An evidence-backed shortlist and searchable archive of collected AI product opportunities in Europe.">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'self'; object-src 'none'">
     <meta name="theme-color" content="#090e18">
@@ -18,103 +18,107 @@
         <span class="header-kicker">AI PRODUCT ROLES · EUROPE</span>
       </div>
       <div class="shell hero">
-        <p class="eyebrow">A focused, source-backed shortlist</p>
+        <p class="eyebrow">Source-backed job discovery</p>
         <h1>Find your next <span>AI product</span> role.</h1>
-        <p class="intro">Search and compare roles from authorized employer boards. Open any row for the complete description, location evidence, salary, and application link.</p>
+        <p class="intro">The shortlist uses AI-assisted review of role responsibilities—not title keywords alone. Browse every collected posting separately, including roles that have not been screened or matched.</p>
       </div>
     </header>
 
     <main class="shell main-content">
-      <section class="filters-panel" aria-labelledby="filters-heading">
-        <div class="panel-heading">
-          <div><p class="eyebrow">Explore the list</p><h2 id="filters-heading">Filters</h2></div>
-          <button id="clear-filters" class="quiet-button" type="button">Clear filters</button>
-        </div>
-        <div class="filter-grid">
-          <label class="filter-control filter-search" for="search">Search all fields
-            <input id="search" type="search" placeholder="Role, company, skills, location…" autocomplete="off">
-          </label>
-          <label class="filter-control" for="company-filter">Company
-            <select id="company-filter"><option value="">All companies</option></select>
-          </label>
-          <label class="filter-control" for="source-filter">Source board
-            <select id="source-filter"><option value="">All sources</option></select>
-          </label>
-          <label class="filter-control" for="workplace-filter">Work style
-            <select id="workplace-filter">
-              <option value="">Any / unknown</option>
-              <option value="remote">Remote</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="onsite">On-site</option>
-              <option value="unknown">Not specified</option>
-            </select>
-          </label>
-          <label class="filter-control" for="geography-filter">EU eligibility
-            <select id="geography-filter">
-              <option value="">All decisions</option>
-              <option value="match">EU match</option>
-              <option value="uncertain">Uncertain</option>
-              <option value="excluded">Outside EU</option>
-            </select>
-          </label>
-          <label class="filter-control" for="salary-filter">Salary contains
-            <input id="salary-filter" type="search" placeholder="e.g. €90,000">
-          </label>
-          <label class="filter-control" for="rating-filter">Glassdoor rating
-            <select id="rating-filter">
-              <option value="">Any rating</option>
-              <option value="known">Rated companies</option>
-              <option value="unknown">Unknown rating</option>
-            </select>
-          </label>
-          <label class="filter-control" for="minimum-rating">Minimum rating
-            <input id="minimum-rating" type="number" min="0" max="5" step="0.1" placeholder="0–5">
-          </label>
-          <label class="filter-control" for="status-filter">Status
-            <select id="status-filter">
-              <option value="">Open / pending</option>
-              <option value="active">Active</option>
-              <option value="pending_absence">Pending review</option>
-              <option value="closed">Closed</option>
-            </select>
-          </label>
-          <label class="closed-check" for="show-closed"><input id="show-closed" type="checkbox"> Include closed roles</label>
-        </div>
+      <div class="tab-bar" role="tablist" aria-label="Career Radar views">
+        <button id="shortlist-tab" class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="shortlist-panel" data-tab-target="shortlist">Shortlist</button>
+        <button id="collected-tab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="collected-panel" data-tab-target="collected" tabindex="-1">All collected postings <span id="collected-count" class="tab-count">Loading…</span></button>
+      </div>
+
+      <section id="shortlist-panel" class="tab-panel" role="tabpanel" aria-labelledby="shortlist-tab" data-tab-panel>
+        <section class="filters-panel" aria-labelledby="shortlist-filters-heading">
+          <div class="panel-heading">
+            <div><p class="eyebrow">AI-screened candidates</p><h2 id="shortlist-filters-heading">Filter shortlist</h2></div>
+            <button id="shortlist-clear-filters" class="quiet-button" type="button">Clear filters</button>
+          </div>
+          <div class="filter-grid">
+            <label class="filter-control filter-search" for="shortlist-query">Search all fields<input id="shortlist-query" type="search" placeholder="Role, skills, location, evidence…" autocomplete="off"></label>
+            <label class="filter-control" for="shortlist-company">Company<select id="shortlist-company"><option value="">All companies</option></select></label>
+            <label class="filter-control" for="shortlist-source">Source board<select id="shortlist-source"><option value="">All sources</option></select></label>
+            <label class="filter-control" for="shortlist-workplace">Work style<select id="shortlist-workplace"><option value="">Any / unknown</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">On-site</option><option value="unknown">Not specified</option></select></label>
+            <label class="filter-control" for="shortlist-geography">EU eligibility<select id="shortlist-geography"><option value="">All decisions</option><option value="match">EU match</option><option value="uncertain">Uncertain</option><option value="excluded">Outside EU</option></select></label>
+            <label class="filter-control" for="shortlist-salary">Salary contains<input id="shortlist-salary" type="search" placeholder="e.g. €90,000"></label>
+            <label class="filter-control" for="shortlist-rating">Glassdoor<select id="shortlist-rating"><option value="">Any rating</option><option value="known">Rated companies</option><option value="unknown">Unknown rating</option></select></label>
+            <label class="filter-control" for="shortlist-minimum-rating">Minimum rating<input id="shortlist-minimum-rating" type="number" min="0" max="5" step="0.1" placeholder="0–5"></label>
+            <label class="filter-control" for="shortlist-status">Status<select id="shortlist-status"><option value="">Open / pending</option><option value="active">Active</option><option value="pending_absence">Pending review</option><option value="closed">Closed</option></select></label>
+            <label class="filter-control" for="shortlist-role-fit">Radar fit<select id="shortlist-role-fit"><option value="">Strong + adjacent</option><option value="strong">Strong match</option><option value="adjacent">Product-adjacent</option></select></label>
+            <label class="closed-check" for="shortlist-show-closed"><input id="shortlist-show-closed" type="checkbox"> Include closed roles</label>
+          </div>
+        </section>
+
+        <section class="results-section" aria-labelledby="shortlist-heading">
+          <div class="results-heading"><div><p class="eyebrow">AI-assisted role screening</p><h2 id="shortlist-heading">Relevant product &amp; product-adjacent roles</h2></div><p id="publication-time" class="publication-time">Last successful publication not recorded.</p></div>
+          <p id="shortlist-load-status" class="load-status" role="status" aria-live="polite">Loading validated job data…</p>
+          <div class="table-frame" role="region" aria-label="Filterable shortlist table" tabindex="0">
+            <table id="shortlist-table"><thead><tr>
+              <th scope="col" data-sort-key="company" aria-sort="none"><button data-view="shortlist" data-sort-key="company" type="button">Company <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="title" aria-sort="ascending"><button data-view="shortlist" data-sort-key="title" type="button">Position <span class="sort-indicator" aria-hidden="true">↑</span></button></th>
+              <th scope="col" data-sort-key="source" aria-sort="none"><button data-view="shortlist" data-sort-key="source" type="button">Source board <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="location" aria-sort="none"><button data-view="shortlist" data-sort-key="location" type="button">Location <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="workplace" aria-sort="none"><button data-view="shortlist" data-sort-key="workplace" type="button">Work style <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="geography" aria-sort="none"><button data-view="shortlist" data-sort-key="geography" type="button">EU eligibility <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="salary" aria-sort="none"><button data-view="shortlist" data-sort-key="salary" type="button">Salary <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="rating" aria-sort="none"><button data-view="shortlist" data-sort-key="rating" type="button">Glassdoor <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="status" aria-sort="none"><button data-view="shortlist" data-sort-key="status" type="button">Status <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="sourceFreshness" aria-sort="none"><button data-view="shortlist" data-sort-key="sourceFreshness" type="button">Source success <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="roleFit" aria-sort="none"><button data-view="shortlist" data-sort-key="roleFit" type="button">Radar fit <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" class="details-heading">Details</th>
+            </tr></thead><tbody id="shortlist-job-rows"><tr class="empty-row"><td colspan="12">Loading shortlist…</td></tr></tbody></table>
+          </div>
+          <p class="table-hint">Every column can be sorted both ways. Open a row for the full source description and the evidence behind its role-fit label.</p>
+        </section>
       </section>
 
-      <section class="results-section" aria-labelledby="results-heading">
-        <div class="results-heading">
-          <div><p class="eyebrow">Current shortlist</p><h2 id="results-heading">AI Product Manager positions</h2></div>
-          <p id="publication-time" class="publication-time">Last successful publication not recorded.</p>
-        </div>
-        <p id="load-status" class="load-status" role="status" aria-live="polite">Loading validated job data…</p>
-        <div class="table-frame" role="region" aria-label="Filterable job positions table" tabindex="0">
-          <table id="job-table">
-            <thead>
-              <tr>
-                <th scope="col" data-sort-key="company" aria-sort="none"><button data-sort-key="company" type="button">Company <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="title" aria-sort="ascending"><button data-sort-key="title" type="button">Position <span class="sort-indicator" aria-hidden="true">↑</span></button></th>
-                <th scope="col" data-sort-key="location" aria-sort="none"><button data-sort-key="location" type="button">Location <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="workplace" aria-sort="none"><button data-sort-key="workplace" type="button">Work style <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="geography" aria-sort="none"><button data-sort-key="geography" type="button">EU eligibility <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="salary" aria-sort="none"><button data-sort-key="salary" type="button">Salary <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="rating" aria-sort="none"><button data-sort-key="rating" type="button">Glassdoor <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="status" aria-sort="none"><button data-sort-key="status" type="button">Status <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" data-sort-key="sourceFreshness" aria-sort="none"><button data-sort-key="sourceFreshness" type="button">Source success <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th scope="col" class="details-heading">Details</th>
-              </tr>
-            </thead>
-            <tbody id="job-rows">
-              <tr class="empty-row"><td colspan="10">Loading positions…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="table-hint">Select any column heading to sort ascending or descending. Open a position for its full description and source evidence.</p>
-      </section>
-
-      <section class="source-section" aria-labelledby="source-heading">
-        <div class="results-heading"><div><p class="eyebrow">Data freshness</p><h2 id="source-heading">Source checks</h2></div></div>
-        <ul id="source-list" class="source-list"></ul>
+      <section id="collected-panel" class="tab-panel" role="tabpanel" aria-labelledby="collected-tab" data-tab-panel hidden>
+        <section class="filters-panel" aria-labelledby="collected-filters-heading">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Complete authorized-board archive</p><h2 id="collected-filters-heading">Filter collected postings</h2></div>
+            <button id="collected-clear-filters" class="quiet-button" type="button">Clear filters</button>
+          </div>
+          <div class="filter-grid">
+            <label class="filter-control filter-search" for="collected-query">Search all fields<input id="collected-query" type="search" placeholder="Title, description, company, salary…" autocomplete="off"></label>
+            <label class="filter-control" for="collected-company">Company<select id="collected-company"><option value="">All companies</option></select></label>
+            <label class="filter-control" for="collected-source">Source board<select id="collected-source"><option value="">All sources</option></select></label>
+            <label class="filter-control" for="collected-workplace">Work style<select id="collected-workplace"><option value="">Any / unknown</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">On-site</option><option value="unknown">Not specified</option></select></label>
+            <label class="filter-control" for="collected-geography">EU eligibility<select id="collected-geography"><option value="">All decisions</option><option value="match">EU match</option><option value="uncertain">Uncertain</option><option value="excluded">Outside EU</option></select></label>
+            <label class="filter-control" for="collected-salary">Salary contains<input id="collected-salary" type="search" placeholder="e.g. €90,000"></label>
+            <label class="filter-control" for="collected-rating">Glassdoor<select id="collected-rating"><option value="">Any rating</option><option value="known">Rated companies</option><option value="unknown">Unknown rating</option></select></label>
+            <label class="filter-control" for="collected-minimum-rating">Minimum rating<input id="collected-minimum-rating" type="number" min="0" max="5" step="0.1" placeholder="0–5"></label>
+            <label class="filter-control" for="collected-status">Status<select id="collected-status"><option value="">All statuses</option><option value="active">Active</option><option value="pending_absence">Pending review</option><option value="closed">Closed</option></select></label>
+            <label class="filter-control" for="collected-role-fit">Radar fit<select id="collected-role-fit"><option value="">Any screening status</option><option value="strong">Strong match</option><option value="adjacent">Product-adjacent</option><option value="not_relevant">Not a match</option><option value="not_screened">Not screened</option></select></label>
+            <label class="closed-check" for="collected-show-closed"><input id="collected-show-closed" type="checkbox" checked> Include closed roles</label>
+          </div>
+        </section>
+        <section class="results-section" aria-labelledby="collected-heading">
+          <div class="results-heading"><div><p class="eyebrow">Growing source archive</p><h2 id="collected-heading">All collected postings</h2></div></div>
+          <p id="collected-load-status" class="load-status" role="status" aria-live="polite">Loading collected postings…</p>
+          <div class="table-frame" role="region" aria-label="Filterable collected postings table" tabindex="0">
+            <table id="collected-table"><thead><tr>
+              <th scope="col" data-sort-key="company" aria-sort="none"><button data-view="collected" data-sort-key="company" type="button">Company <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="title" aria-sort="ascending"><button data-view="collected" data-sort-key="title" type="button">Position <span class="sort-indicator" aria-hidden="true">↑</span></button></th>
+              <th scope="col" data-sort-key="source" aria-sort="none"><button data-view="collected" data-sort-key="source" type="button">Source board <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="location" aria-sort="none"><button data-view="collected" data-sort-key="location" type="button">Location <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="workplace" aria-sort="none"><button data-view="collected" data-sort-key="workplace" type="button">Work style <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="geography" aria-sort="none"><button data-view="collected" data-sort-key="geography" type="button">EU eligibility <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="salary" aria-sort="none"><button data-view="collected" data-sort-key="salary" type="button">Salary <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="rating" aria-sort="none"><button data-view="collected" data-sort-key="rating" type="button">Glassdoor <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="status" aria-sort="none"><button data-view="collected" data-sort-key="status" type="button">Status <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="sourceFreshness" aria-sort="none"><button data-view="collected" data-sort-key="sourceFreshness" type="button">Source success <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" data-sort-key="roleFit" aria-sort="none"><button data-view="collected" data-sort-key="roleFit" type="button">Radar fit <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+              <th scope="col" class="details-heading">Details</th>
+            </tr></thead><tbody id="collected-job-rows"><tr class="empty-row"><td colspan="12">Loading postings…</td></tr></tbody></table>
+          </div>
+          <p class="table-hint">This tab includes every stored posting from the six authorized boards, not just matches. “Not screened” means no AI role-fit judgment has been cached.</p>
+        </section>
+        <section class="source-section" aria-labelledby="source-heading">
+          <div class="results-heading"><div><p class="eyebrow">Collection health</p><h2 id="source-heading">Source checks</h2></div></div>
+          <ul id="source-list" class="source-list"></ul>
+        </section>
       </section>
     </main>
 

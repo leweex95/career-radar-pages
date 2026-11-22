@@ -14,6 +14,7 @@ const GEOGRAPHY_LABELS = {
 export const TABLE_COLUMNS = [
   { key: "company", label: "Company" },
   { key: "title", label: "Position" },
+  { key: "source", label: "Source board" },
   { key: "location", label: "Location" },
   { key: "workplace", label: "Work style" },
   { key: "geography", label: "EU eligibility" },
@@ -21,6 +22,7 @@ export const TABLE_COLUMNS = [
   { key: "rating", label: "Glassdoor" },
   { key: "status", label: "Status" },
   { key: "sourceFreshness", label: "Source last succeeded" },
+  { key: "roleFit", label: "Career Radar fit" },
 ];
 
 export function safeApplicationUrl(value) {
@@ -35,13 +37,20 @@ export function safeApplicationUrl(value) {
 }
 
 export function validatePublicData(data) {
+  const isJobRecord = (job) => Boolean(
+    job && typeof job === "object" && typeof job.id === "string" && typeof job.title === "string"
+    && typeof job.companyId === "string" && typeof job.source === "string" && typeof job.boardId === "string"
+    && typeof job.descriptionText === "string" && typeof job.salaryOriginal !== "undefined"
+  );
   return Boolean(
     data && typeof data === "object" && !Array.isArray(data)
-    && data.schemaVersion === 1
+    && data.schemaVersion === 3
     && Array.isArray(data.jobs)
+    && Array.isArray(data.collectedJobs)
     && Array.isArray(data.companies)
     && Array.isArray(data.sources)
-    && data.jobs.every((job) => job && typeof job.id === "string" && typeof job.title === "string")
+    && data.jobs.every(isJobRecord)
+    && data.collectedJobs.every(isJobRecord)
     && data.companies.every((company) => company && typeof company.id === "string")
     && data.sources.every((source) => source && typeof source.ats === "string" && typeof source.boardId === "string")
   );
@@ -60,6 +69,7 @@ export function columnValue(job, maps, key) {
   switch (key) {
     case "company": return company?.name ?? "";
     case "title": return job.title ?? "";
+    case "source": return `${job.source ?? ""}:${job.boardId ?? ""}`;
     case "location": return job.locationOriginal ?? "";
     case "workplace": return job.workplace ?? "unknown";
     case "geography": return job.geographyDecision ?? "uncertain";
@@ -68,6 +78,7 @@ export function columnValue(job, maps, key) {
       return typeof company?.glassdoorRating === "number" && Number.isFinite(company.glassdoorRating)
         ? company.glassdoorRating : null;
     case "status": return job.status ?? "unknown";
+    case "roleFit": return ({ strong: 3, adjacent: 2, not_relevant: 1, not_screened: 0 })[job.roleFit] ?? -1;
     case "sourceFreshness": {
       const parsed = Date.parse(source?.lastSuccessfulAt ?? "");
       return Number.isFinite(parsed) ? parsed : null;
@@ -76,15 +87,16 @@ export function columnValue(job, maps, key) {
   }
 }
 
-export function filterJobs(data, filters = {}) {
+export function filterJobs(data, filters = {}, collection = data?.jobs) {
   if (!validatePublicData(data)) return [];
+  if (!Array.isArray(collection)) return [];
   const maps = mapsFor(data);
   const query = String(filters.query ?? "").trim().toLocaleLowerCase();
   const salaryQuery = String(filters.salary ?? "").trim().toLocaleLowerCase();
   const minimumRating = filters.minimumRating === "" || filters.minimumRating == null
     ? null : Number(filters.minimumRating);
 
-  return data.jobs.filter((job) => {
+  return collection.filter((job) => {
     const company = maps.companies.get(job.companyId);
     const source = maps.sources.get(`${job.source}:${job.boardId}`);
     const rating = columnValue(job, maps, "rating");
@@ -94,6 +106,7 @@ export function filterJobs(data, filters = {}) {
     if (filters.workplace && job.workplace !== filters.workplace) return false;
     if (filters.geography && job.geographyDecision !== filters.geography) return false;
     if (filters.status && job.status !== filters.status) return false;
+    if (filters.roleFit && job.roleFit !== filters.roleFit) return false;
     if (filters.rating === "known" && rating == null) return false;
     if (filters.rating === "unknown" && rating != null) return false;
     if (minimumRating != null && (!Number.isFinite(minimumRating) || rating == null || rating < minimumRating)) return false;
@@ -102,12 +115,17 @@ export function filterJobs(data, filters = {}) {
       const searchable = [
         company?.name, job.title, job.descriptionText, job.locationOriginal,
         job.salaryOriginal, job.workplace, job.geographyDecision, job.status,
+        job.roleFit, job.roleFitReason, ...(Array.isArray(job.roleFitEvidence) ? job.roleFitEvidence : []),
         job.source, job.boardId, company?.ratingEvidence, company?.identityEvidence,
       ].filter((value) => typeof value === "string").join(" ").toLocaleLowerCase();
       if (!searchable.includes(query)) return false;
     }
     return true;
   });
+}
+
+export function filterCollectedJobs(data, filters = {}) {
+  return filterJobs(data, { showClosed: true, ...filters }, data?.collectedJobs);
 }
 
 function isUnknown(value) {
@@ -173,6 +191,7 @@ function formatColumn(job, maps, key) {
   const value = columnValue(job, maps, key);
   switch (key) {
     case "workplace": return WORKPLACE_LABELS[job.workplace] ?? WORKPLACE_LABELS.unknown;
+    case "source": return `${String(job.source || "").toLocaleUpperCase()} · ${job.boardId || "Unknown"}`;
     case "geography": return GEOGRAPHY_LABELS[job.geographyDecision] ?? "Uncertain";
     case "salary": return job.salaryOriginal || "Not listed";
     case "rating": {
@@ -181,6 +200,7 @@ function formatColumn(job, maps, key) {
       return `${value.toFixed(1)} / 5${count}`;
     }
     case "status": return ({ active: "Active", pending_absence: "Pending", closed: "Closed" })[job.status] ?? "Unknown";
+    case "roleFit": return ({ strong: "Strong match", adjacent: "Product-adjacent", not_relevant: "Not a match", not_screened: "Not screened" })[job.roleFit] ?? "Not screened";
     case "sourceFreshness": {
       const source = maps.sources.get(`${job.source}:${job.boardId}`);
       return source?.lastSuccessfulAt ? formatDate(source.lastSuccessfulAt) : "Unknown";
@@ -224,14 +244,22 @@ function renderDetails(job, company, source) {
   grid.className = "detail-grid";
   addDetailField(grid, "Job ID", job.id);
   addDetailField(grid, "Location as listed", job.locationOriginal);
-  addDetailField(grid, "Workplace evidence", job.workplace);
+  addDetailField(grid, "Source workplace label", job.sourceWorkplaceType);
+  addDetailField(grid, "Source remote flag", job.sourceIsRemote === null ? null : String(job.sourceIsRemote));
+  addDetailField(grid, "Interpreted work style", WORKPLACE_LABELS[job.workplace] ?? "Unspecified");
+  addDetailField(grid, "Workplace evidence", job.workplaceEvidence);
   addDetailField(grid, "EU eligibility", GEOGRAPHY_LABELS[job.geographyDecision] ?? "Uncertain");
   addDetailField(grid, "Eligibility evidence", job.geographyEvidence);
+  addDetailField(grid, "Geography decision basis", job.geographyReason);
   addDetailField(grid, "Salary as published", job.salaryOriginal);
   addDetailField(grid, "Status", ({ active: "Active", pending_absence: "Pending review", closed: "Closed" })[job.status] ?? "Unknown");
   addDetailField(grid, "Closure reason", job.closureReason);
   addDetailField(grid, "Source", `${job.source} ? ${job.boardId}`);
   addDetailField(grid, "Last complete source observation", source?.lastSuccessfulAt ? formatDate(source.lastSuccessfulAt) : null);
+  addDetailField(grid, "Career Radar fit", ({ strong: "Strong match", adjacent: "Product-adjacent", not_relevant: "Not a match", not_screened: "Not screened" })[job.roleFit] ?? "Not screened");
+  addDetailField(grid, "Role family", job.roleFamily?.replaceAll("_", " "));
+  addDetailField(grid, "Fit rationale", job.roleFitReason);
+  addDetailField(grid, "Fit evidence", Array.isArray(job.roleFitEvidence) ? job.roleFitEvidence.join("\n\n") : null);
   content.append(grid);
 
   const description = document.createElement("section");
@@ -243,6 +271,7 @@ function renderDetails(job, company, source) {
   const links = document.createElement("div");
   links.className = "detail-links";
   appendSafeLink(links, job.applyUrl, "Open application", "primary-link");
+  appendSafeLink(links, job.jobUrl, "Open source posting", "secondary-link");
   appendSafeLink(links, company?.website, "Company website", "secondary-link");
   appendSafeLink(links, company?.glassdoorProfileUrl, "Glassdoor profile", "secondary-link");
   content.append(links);
@@ -266,117 +295,122 @@ function renderDetails(job, company, source) {
 }
 
 function initialize() {
-  const status = document.querySelector("#load-status");
   const publication = document.querySelector("#publication-time");
-  const tbody = document.querySelector("#job-rows");
-  const sourceList = document.querySelector("#source-list");
-  if (!status || !publication || !tbody) return;
-
-  const state = {
-    data: null,
-    filters: { query: "", company: "", source: "", workplace: "", geography: "", status: "", salary: "", rating: "", minimumRating: "", showClosed: false },
-    sortKey: "title",
-    direction: "asc",
-    expanded: new Set(),
+  if (!publication) return;
+  const filterNames = ["query", "company", "source", "workplace", "geography", "status", "salary", "rating", "minimumRating", "showClosed", "roleFit"];
+  const defaultFilters = () => ({ query: "", company: "", source: "", workplace: "", geography: "", status: "", salary: "", rating: "", minimumRating: "", showClosed: false, roleFit: "" });
+  const views = {
+    shortlist: { collection: "jobs", filters: defaultFilters(), sortKey: "title", direction: "asc", expanded: new Set() },
+    collected: { collection: "collectedJobs", filters: { ...defaultFilters(), showClosed: true }, sortKey: "title", direction: "asc", expanded: new Set() },
   };
-  const controls = {
-    query: document.querySelector("#search"),
-    company: document.querySelector("#company-filter"),
-    source: document.querySelector("#source-filter"),
-    workplace: document.querySelector("#workplace-filter"),
-    geography: document.querySelector("#geography-filter"),
-    status: document.querySelector("#status-filter"),
-    salary: document.querySelector("#salary-filter"),
-    rating: document.querySelector("#rating-filter"),
-    minimumRating: document.querySelector("#minimum-rating"),
-    showClosed: document.querySelector("#show-closed"),
-  };
+  const controls = Object.fromEntries(Object.keys(views).map((name) => [name, Object.fromEntries(
+    filterNames.map((key) => [key, document.querySelector(`#${name}-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`)]),
+  )]));
 
-  const updateFilters = () => {
-    for (const key of Object.keys(controls)) {
-      const control = controls[key];
-      if (!control) continue;
-      state.filters[key] = control.type === "checkbox" ? control.checked : control.value;
+  function updateFilters(name) {
+    for (const key of filterNames) {
+      const control = controls[name][key];
+      if (control) views[name].filters[key] = control.type === "checkbox" ? control.checked : control.value;
     }
-    renderTable(state);
-  };
-  for (const control of Object.values(controls)) {
-    control?.addEventListener("input", updateFilters);
-    control?.addEventListener("change", updateFilters);
+    renderTable(name);
   }
 
-  document.querySelector("#clear-filters")?.addEventListener("click", () => {
-    for (const control of Object.values(controls)) {
-      if (!control) continue;
-      if (control.type === "checkbox") control.checked = false;
-      else control.value = "";
+  for (const name of Object.keys(views)) {
+    for (const control of Object.values(controls[name])) {
+      control?.addEventListener("input", () => updateFilters(name));
+      control?.addEventListener("change", () => updateFilters(name));
     }
-    updateFilters();
-  });
-
-  document.querySelectorAll("button[data-sort-key]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const key = button.dataset.sortKey;
-      if (state.sortKey === key) state.direction = state.direction === "asc" ? "desc" : "asc";
-      else {
-        state.sortKey = key;
-        state.direction = key === "rating" || key === "sourceFreshness" ? "desc" : "asc";
+    document.querySelector(`#${name}-clear-filters`)?.addEventListener("click", () => {
+      for (const control of Object.values(controls[name])) {
+        if (!control) continue;
+        if (control.type === "checkbox") control.checked = false;
+        else control.value = "";
       }
-      renderTable(state);
+      updateFilters(name);
+    });
+    const tbody = document.querySelector(`#${name}-job-rows`);
+    tbody?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-open-job]");
+      if (!button) return;
+      const id = button.dataset.openJob;
+      if (views[name].expanded.has(id)) views[name].expanded.delete(id);
+      else views[name].expanded.add(id);
+      renderTable(name);
+      [...tbody.querySelectorAll("[data-open-job]")].find((item) => item.dataset.openJob === id)?.focus();
+    });
+  }
+
+  document.querySelectorAll("button[data-sort-key][data-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const current = views[button.dataset.view];
+      if (!current) return;
+      const key = button.dataset.sortKey;
+      if (current.sortKey === key) current.direction = current.direction === "asc" ? "desc" : "asc";
+      else {
+        current.sortKey = key;
+        current.direction = key === "rating" || key === "sourceFreshness" ? "desc" : "asc";
+      }
+      renderTable(button.dataset.view);
     });
   });
 
-  tbody.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-open-job]");
-    if (!button) return;
-    const id = button.dataset.openJob;
-    if (state.expanded.has(id)) state.expanded.delete(id);
-    else state.expanded.add(id);
-    renderTable(state);
-    [...tbody.querySelectorAll("[data-open-job]")].find((item) => item.dataset.openJob === id)?.focus();
+  document.querySelectorAll("[data-tab-target]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const selected = tab.dataset.tabTarget;
+      document.querySelectorAll("[data-tab-target]").forEach((candidate) => {
+        const active = candidate === tab;
+        candidate.setAttribute("aria-selected", active ? "true" : "false");
+        candidate.tabIndex = active ? 0 : -1;
+      });
+      document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+        panel.hidden = panel.id !== `${selected}-panel`;
+      });
+    });
   });
 
   function populateFilters(data) {
-    const companyFilter = controls.company;
-    const sourceFilter = controls.source;
-    if (companyFilter) {
-      const companies = [...data.companies].sort((a, b) => a.name.localeCompare(b.name));
-      for (const company of companies) {
+    for (const name of Object.keys(views)) {
+      const companyFilter = controls[name].company;
+      const sourceFilter = controls[name].source;
+      for (const company of [...data.companies].sort((a, b) => a.name.localeCompare(b.name))) {
         const option = document.createElement("option");
         option.value = company.id;
         option.textContent = company.name;
-        companyFilter.append(option);
+        companyFilter?.append(option);
       }
-    }
-    if (sourceFilter) {
       for (const source of data.sources) {
         const option = document.createElement("option");
         option.value = `${source.ats}:${source.boardId}`;
-        option.textContent = `${source.ats.toLocaleUpperCase()} ? ${source.boardId}`;
-        sourceFilter.append(option);
+        option.textContent = `${source.ats.toLocaleUpperCase()} · ${source.boardId}`;
+        sourceFilter?.append(option);
       }
     }
     renderSourceChecks(data.sources);
     publication.textContent = formatDate(data.lastSuccessfulPublicationAt) === "Not recorded"
       ? "No successful publication recorded."
       : `Last successful publication: ${formatDate(data.lastSuccessfulPublicationAt)}`;
+    const collectedCount = document.querySelector("#collected-count");
+    if (collectedCount) collectedCount.textContent = `${data.collectedJobs.length.toLocaleString()} collected postings`;
   }
 
-  function renderTable(current) {
-    const data = current.data;
-    if (!data) return;
+  function renderTable(name) {
+    const data = appState.data;
+    const current = views[name];
+    const tbody = document.querySelector(`#${name}-job-rows`);
+    const status = document.querySelector(`#${name}-load-status`);
+    if (!data || !current || !tbody || !status) return;
     const maps = mapsFor(data);
-    const filtered = filterJobs(data, current.filters);
+    const collection = data[current.collection];
+    const filtered = filterJobs(data, current.filters, collection);
     const sorted = sortJobs(data, filtered, current.sortKey, current.direction);
     const rows = [];
-
     for (const job of sorted) {
       const row = document.createElement("tr");
       row.dataset.jobId = job.id;
       for (const column of TABLE_COLUMNS) {
         const cell = document.createElement("td");
         const value = formatColumn(job, maps, column.key);
-        if (column.key === "rating") cell.className = value === "Not rated" ? "muted-cell" : "rating-cell";
+        if (column.key === "rating" || column.key === "roleFit") cell.className = value === "Not rated" || value === "Not screened" ? "muted-cell" : "rating-cell";
         if (column.key === "status") cell.className = `status-cell status-${job.status}`;
         if (column.key === "geography") cell.className = `geo-cell geo-${job.geographyDecision}`;
         if (column.key === "title") cell.className = "title-cell";
@@ -394,43 +428,40 @@ function initialize() {
       actionCell.append(open);
       row.append(actionCell);
       rows.push(row);
-
       if (current.expanded.has(job.id)) {
-        const details = document.createElement("tr");
-        details.className = "detail-row";
+        const detailRow = document.createElement("tr");
+        detailRow.className = "detail-row";
         const cell = document.createElement("td");
         cell.colSpan = TABLE_COLUMNS.length + 1;
-        const company = maps.companies.get(job.companyId);
-        const source = maps.sources.get(`${job.source}:${job.boardId}`);
-        cell.append(renderDetails(job, company, source));
-        details.append(cell);
-        rows.push(details);
+        cell.append(renderDetails(job, maps.companies.get(job.companyId), maps.sources.get(`${job.source}:${job.boardId}`)));
+        detailRow.append(cell);
+        rows.push(detailRow);
       }
     }
-
-    if (sorted.length === 0) {
+    if (!sorted.length) {
       const empty = document.createElement("tr");
       empty.className = "empty-row";
       const cell = document.createElement("td");
       cell.colSpan = TABLE_COLUMNS.length + 1;
-      cell.textContent = data.jobs.length === 0
-        ? "No matching AI Product Manager positions were found in the latest source observations. Source checks are listed below."
-        : "No positions match the current filters. Choose Clear filters to reset the table.";
+      cell.textContent = collection.length === 0
+        ? (name === "collected" ? "No postings have been collected from the configured boards yet." : "No AI product or product-adjacent roles have been screened into the shortlist yet. See All collected postings.")
+        : "No positions match these filters. Choose Clear filters to reset this table.";
       empty.append(cell);
       rows.push(empty);
     }
     tbody.replaceChildren(...rows);
-    status.textContent = `Showing ${sorted.length} of ${data.jobs.length} positions ? sorted by ${TABLE_COLUMNS.find((column) => column.key === current.sortKey)?.label ?? current.sortKey} (${current.direction === "asc" ? "ascending" : "descending"})`;
-
-    document.querySelectorAll("[data-sort-key]").forEach((button) => {
+    const tableName = name === "collected" ? "collected postings" : "shortlist positions";
+    status.textContent = `Showing ${sorted.length.toLocaleString()} of ${collection.length.toLocaleString()} ${tableName} · sorted by ${TABLE_COLUMNS.find((column) => column.key === current.sortKey)?.label ?? current.sortKey} (${current.direction === "asc" ? "ascending" : "descending"})`;
+    document.querySelectorAll(`button[data-sort-key][data-view="${name}"]`).forEach((button) => {
       const header = button.closest("th");
       const active = button.dataset.sortKey === current.sortKey;
       header?.setAttribute("aria-sort", active ? (current.direction === "asc" ? "ascending" : "descending") : "none");
       const indicator = button.querySelector(".sort-indicator");
-      if (indicator) indicator.textContent = active ? (current.direction === "asc" ? "?" : "?") : "?";
+      if (indicator) indicator.textContent = active ? (current.direction === "asc" ? "↑" : "↓") : "↕";
     });
   }
 
+  const appState = { data: null };
   const url = new URL("./data/jobs.json", document.baseURI);
   fetch(url, { headers: { Accept: "application/json" } })
     .then((response) => {
@@ -439,20 +470,24 @@ function initialize() {
     })
     .then((data) => {
       if (!validatePublicData(data)) throw new Error("public data failed schema validation");
-      state.data = data;
+      appState.data = data;
       populateFilters(data);
-      renderTable(state);
+      renderTable("shortlist");
+      renderTable("collected");
     })
     .catch(() => {
-      status.textContent = "Validated job data is currently unavailable.";
       publication.textContent = "No successful publication recorded.";
-      if (sourceList) sourceList.replaceChildren();
-      const empty = document.createElement("tr");
-      const cell = document.createElement("td");
-      cell.colSpan = TABLE_COLUMNS.length + 1;
-      cell.textContent = "The public data file could not be loaded or did not pass validation.";
-      empty.append(cell);
-      tbody.replaceChildren(empty);
+      for (const name of Object.keys(views)) {
+        const status = document.querySelector(`#${name}-load-status`);
+        const tbody = document.querySelector(`#${name}-job-rows`);
+        if (status) status.textContent = "Validated job data is currently unavailable.";
+        const empty = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = TABLE_COLUMNS.length + 1;
+        cell.textContent = "The public data file could not be loaded or did not pass validation.";
+        empty.append(cell);
+        tbody?.replaceChildren(empty);
+      }
     });
 }
 
