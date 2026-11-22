@@ -33,17 +33,33 @@ jobs:
           import { readFileSync, writeFileSync } from 'node:fs';
           const path = '_site/data/jobs.json';
           const data = JSON.parse(readFileSync(path, 'utf8'));
-          const keys = ['companies', 'generatedAt', 'jobs', 'lastSuccessfulPublicationAt', 'schemaVersion', 'sources'];
-          if (!data || typeof data !== 'object' || Array.isArray(data)
-            || JSON.stringify(Object.keys(data).sort()) !== JSON.stringify(keys)
-            || data.schemaVersion !== 1
-            || !Array.isArray(data.sources) || !Array.isArray(data.companies) || !Array.isArray(data.jobs)) {
-            throw new Error('Public JSON candidate failed schema validation.');
+          const exactKeys = (value, expected) => value && typeof value === 'object' && !Array.isArray(value)
+            && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...expected].sort());
+          const topKeys = ['collectedJobs', 'companies', 'generatedAt', 'jobs', 'lastSuccessfulPublicationAt', 'schemaVersion', 'sources'];
+          const jobKeys = ['applyUrl', 'boardId', 'closureReason', 'companyId', 'descriptionText', 'geographyDecision', 'geographyEvidence', 'geographyReason', 'id', 'jobUrl', 'locationOriginal', 'roleFamily', 'roleFit', 'roleFitEvidence', 'roleFitReason', 'salaryOriginal', 'source', 'sourceIsRemote', 'sourceWorkplaceType', 'status', 'title', 'workplace', 'workplaceEvidence'];
+          if (!exactKeys(data, topKeys) || data.schemaVersion !== 3
+            || !Array.isArray(data.sources) || !Array.isArray(data.companies)
+            || !Array.isArray(data.jobs) || !Array.isArray(data.collectedJobs)) {
+            throw new Error('Public JSON candidate failed schema v3 validation.');
+          }
+          const companyIds = new Set(data.companies.map((company) => company?.id));
+          const ids = new Set();
+          for (const job of data.collectedJobs) {
+            if (!exactKeys(job, jobKeys) || typeof job.id !== 'string' || ids.has(job.id)
+              || !companyIds.has(job.companyId) || typeof job.title !== 'string'
+              || typeof job.descriptionText !== 'string' || !job.applyUrl?.startsWith('https://')
+              || (job.jobUrl !== null && !job.jobUrl?.startsWith('https://'))
+              || !['strong', 'adjacent', 'not_relevant', 'not_screened'].includes(job.roleFit)
+              || !['active', 'pending_absence', 'closed'].includes(job.status)
+              || !Array.isArray(job.roleFitEvidence)
+              || job.roleFitEvidence.some((quote) => typeof quote !== 'string' || !`${job.title}\n${job.descriptionText}`.toLocaleLowerCase().includes(quote.toLocaleLowerCase()))) {
+              throw new Error('Public JSON contains a malformed or ungrounded collected posting.');
+            }
+            ids.add(job.id);
           }
           for (const job of data.jobs) {
-            if (!job || typeof job.id !== 'string' || typeof job.title !== 'string'
-              || typeof job.descriptionText !== 'string' || !job.applyUrl?.startsWith('https://')) {
-              throw new Error('Public JSON contains a malformed job.');
+            if (!ids.has(job.id) || !['strong', 'adjacent'].includes(job.roleFit)) {
+              throw new Error('Shortlist must be a subset of evidence-screened collected postings.');
             }
           }
           data.lastSuccessfulPublicationAt = new Date().toISOString();
