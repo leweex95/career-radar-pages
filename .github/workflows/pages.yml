@@ -1,0 +1,71 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out public static site
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+      - name: Validate public schema and mark this publication candidate
+        run: |
+          mkdir -p _site/data
+          cp index.html styles.css app.mjs _site/
+          cp data/jobs.json _site/data/jobs.json
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/data/jobs.json';
+          const data = JSON.parse(readFileSync(path, 'utf8'));
+          const keys = ['companies', 'generatedAt', 'jobs', 'lastSuccessfulPublicationAt', 'schemaVersion', 'sources'];
+          if (!data || typeof data !== 'object' || Array.isArray(data)
+            || JSON.stringify(Object.keys(data).sort()) !== JSON.stringify(keys)
+            || data.schemaVersion !== 1
+            || !Array.isArray(data.sources) || !Array.isArray(data.companies) || !Array.isArray(data.jobs)) {
+            throw new Error('Public JSON candidate failed schema validation.');
+          }
+          for (const job of data.jobs) {
+            if (!job || typeof job.id !== 'string' || typeof job.title !== 'string'
+              || typeof job.descriptionText !== 'string' || !job.applyUrl?.startsWith('https://')) {
+              throw new Error('Public JSON contains a malformed job.');
+            }
+          }
+          data.lastSuccessfulPublicationAt = new Date().toISOString();
+          writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+          NODE
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: _site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+
+      - name: Persist the successful publication timestamp
+        run: |
+          cp _site/data/jobs.json data/jobs.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/jobs.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record successful Pages publication'
+            git push origin HEAD:master
+          fi

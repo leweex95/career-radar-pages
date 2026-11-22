@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A source-backed directory of remote AI product management opportunities in Europe.">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'self'; object-src 'none'">
+    <title>Career Radar — AI Product Jobs in Europe</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.mjs"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell">
+        <p class="eyebrow">Career Radar</p>
+        <h1>AI product roles, with the details that matter.</h1>
+        <p class="intro">Remote opportunities across Europe, with direct application links, published salary details, and visible uncertainty.</p>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="toolbar" aria-label="Job search and filters">
+        <label class="search-label" for="search">Search jobs</label>
+        <input id="search" type="search" placeholder="Title, company, description, location…" autocomplete="off">
+        <label class="sort-label" for="sort">Sort</label>
+        <select id="sort">
+          <option value="rating">Company rating (highest first)</option>
+          <option value="title">Job title (A–Z)</option>
+        </select>
+        <label class="closed-toggle"><input id="show-closed" type="checkbox"> Show closed jobs</label>
+      </section>
+
+      <section class="status-row" aria-live="polite">
+        <p id="load-status">Loading job data…</p>
+        <p id="publication-time">No successful publication recorded.</p>
+      </section>
+
+      <section id="jobs" class="job-list" aria-label="Job listings"></section>
+      <p id="empty-state" class="empty-state" hidden>No jobs match your search.</p>
+
+      <section class="source-status" aria-labelledby="source-heading">
+        <h2 id="source-heading">Source checks</h2>
+        <ul id="source-list"></ul>
+      </section>
+    </main>
+
+    <footer class="shell footer">
+      <p>Ratings are shown only when supported by source evidence. Unknown values are not estimated.</p>
+    </footer>
+  </body>
+</html>
