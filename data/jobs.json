@@ -1,6 +1,6 @@
 {
   "companies": [],
-  "generatedAt": "2026-11-22T20:43:24+00:00",
+  "generatedAt": "2026-11-22T21:06:58+00:00",
   "jobs": [],
   "lastSuccessfulPublicationAt": "2026-11-22T20:48:24.415Z",
   "schemaVersion": 1,
@@ -10,48 +10,48 @@
       "boardId": "yld",
       "complete": true,
       "jobCount": 5,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     },
     {
       "ats": "greenhouse",
       "boardId": "cloudflare",
       "complete": true,
       "jobCount": 504,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     },
     {
       "ats": "lever",
       "boardId": "swissborg",
       "complete": true,
       "jobCount": 10,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     },
     {
       "ats": "lever",
       "boardId": "weloglobal",
       "complete": true,
       "jobCount": 462,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     },
     {
       "ats": "ashby",
       "boardId": "n8n",
       "complete": true,
       "jobCount": 68,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     },
     {
       "ats": "ashby",
       "boardId": "coder",
       "complete": true,
       "jobCount": 28,
-      "lastSuccessfulAt": "2026-11-22T20:41:13+00:00",
-      "latestAttemptAt": "2026-11-22T20:41:13+00:00"
+      "lastSuccessfulAt": "2026-11-22T21:04:09+00:00",
+      "latestAttemptAt": "2026-11-22T21:04:09+00:00"
     }
   ]
 }
