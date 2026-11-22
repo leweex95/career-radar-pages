@@ -3,50 +3,121 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A source-backed directory of remote AI product management opportunities in Europe.">
+    <meta name="description" content="An evidence-backed, filterable list of AI product management opportunities in Europe.">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'self'; object-src 'none'">
+    <meta name="theme-color" content="#090e18">
     <title>Career Radar — AI Product Jobs in Europe</title>
     <link rel="stylesheet" href="./styles.css">
     <script type="module" src="./app.mjs"></script>
   </head>
   <body>
     <header class="site-header">
-      <div class="shell">
-        <p class="eyebrow">Career Radar</p>
-        <h1>AI product roles, with the details that matter.</h1>
-        <p class="intro">Remote opportunities across Europe, with direct application links, published salary details, and visible uncertainty.</p>
+      <div class="shell header-inner">
+        <a class="brand" href="./" aria-label="Career Radar home"><span class="brand-mark" aria-hidden="true">CR</span><span>Career Radar</span></a>
+        <span class="header-kicker">AI PRODUCT ROLES · EUROPE</span>
+      </div>
+      <div class="shell hero">
+        <p class="eyebrow">A focused, source-backed shortlist</p>
+        <h1>Find your next <span>AI product</span> role.</h1>
+        <p class="intro">Search and compare roles from authorized employer boards. Open any row for the complete description, location evidence, salary, and application link.</p>
       </div>
     </header>
 
-    <main class="shell">
-      <section class="toolbar" aria-label="Job search and filters">
-        <label class="search-label" for="search">Search jobs</label>
-        <input id="search" type="search" placeholder="Title, company, description, location…" autocomplete="off">
-        <label class="sort-label" for="sort">Sort</label>
-        <select id="sort">
-          <option value="rating">Company rating (highest first)</option>
-          <option value="title">Job title (A–Z)</option>
-        </select>
-        <label class="closed-toggle"><input id="show-closed" type="checkbox"> Show closed jobs</label>
+    <main class="shell main-content">
+      <section class="filters-panel" aria-labelledby="filters-heading">
+        <div class="panel-heading">
+          <div><p class="eyebrow">Explore the list</p><h2 id="filters-heading">Filters</h2></div>
+          <button id="clear-filters" class="quiet-button" type="button">Clear filters</button>
+        </div>
+        <div class="filter-grid">
+          <label class="filter-control filter-search" for="search">Search all fields
+            <input id="search" type="search" placeholder="Role, company, skills, location…" autocomplete="off">
+          </label>
+          <label class="filter-control" for="company-filter">Company
+            <select id="company-filter"><option value="">All companies</option></select>
+          </label>
+          <label class="filter-control" for="source-filter">Source board
+            <select id="source-filter"><option value="">All sources</option></select>
+          </label>
+          <label class="filter-control" for="workplace-filter">Work style
+            <select id="workplace-filter">
+              <option value="">Any / unknown</option>
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="onsite">On-site</option>
+              <option value="unknown">Not specified</option>
+            </select>
+          </label>
+          <label class="filter-control" for="geography-filter">EU eligibility
+            <select id="geography-filter">
+              <option value="">All decisions</option>
+              <option value="match">EU match</option>
+              <option value="uncertain">Uncertain</option>
+              <option value="excluded">Outside EU</option>
+            </select>
+          </label>
+          <label class="filter-control" for="salary-filter">Salary contains
+            <input id="salary-filter" type="search" placeholder="e.g. €90,000">
+          </label>
+          <label class="filter-control" for="rating-filter">Glassdoor rating
+            <select id="rating-filter">
+              <option value="">Any rating</option>
+              <option value="known">Rated companies</option>
+              <option value="unknown">Unknown rating</option>
+            </select>
+          </label>
+          <label class="filter-control" for="minimum-rating">Minimum rating
+            <input id="minimum-rating" type="number" min="0" max="5" step="0.1" placeholder="0–5">
+          </label>
+          <label class="filter-control" for="status-filter">Status
+            <select id="status-filter">
+              <option value="">Open / pending</option>
+              <option value="active">Active</option>
+              <option value="pending_absence">Pending review</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <label class="closed-check" for="show-closed"><input id="show-closed" type="checkbox"> Include closed roles</label>
+        </div>
       </section>
 
-      <section class="status-row" aria-live="polite">
-        <p id="load-status">Loading job data…</p>
-        <p id="publication-time">No successful publication recorded.</p>
+      <section class="results-section" aria-labelledby="results-heading">
+        <div class="results-heading">
+          <div><p class="eyebrow">Current shortlist</p><h2 id="results-heading">AI Product Manager positions</h2></div>
+          <p id="publication-time" class="publication-time">Last successful publication not recorded.</p>
+        </div>
+        <p id="load-status" class="load-status" role="status" aria-live="polite">Loading validated job data…</p>
+        <div class="table-frame" role="region" aria-label="Filterable job positions table" tabindex="0">
+          <table id="job-table">
+            <thead>
+              <tr>
+                <th scope="col" data-sort-key="company" aria-sort="none"><button data-sort-key="company" type="button">Company <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="title" aria-sort="ascending"><button data-sort-key="title" type="button">Position <span class="sort-indicator" aria-hidden="true">↑</span></button></th>
+                <th scope="col" data-sort-key="location" aria-sort="none"><button data-sort-key="location" type="button">Location <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="workplace" aria-sort="none"><button data-sort-key="workplace" type="button">Work style <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="geography" aria-sort="none"><button data-sort-key="geography" type="button">EU eligibility <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="salary" aria-sort="none"><button data-sort-key="salary" type="button">Salary <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="rating" aria-sort="none"><button data-sort-key="rating" type="button">Glassdoor <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="status" aria-sort="none"><button data-sort-key="status" type="button">Status <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" data-sort-key="sourceFreshness" aria-sort="none"><button data-sort-key="sourceFreshness" type="button">Source success <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th scope="col" class="details-heading">Details</th>
+              </tr>
+            </thead>
+            <tbody id="job-rows">
+              <tr class="empty-row"><td colspan="10">Loading positions…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-hint">Select any column heading to sort ascending or descending. Open a position for its full description and source evidence.</p>
       </section>
 
-      <section id="jobs" class="job-list" aria-label="Job listings"></section>
-      <p id="empty-state" class="empty-state" hidden>No jobs match your search.</p>
-
-      <section class="source-status" aria-labelledby="source-heading">
-        <h2 id="source-heading">Source checks</h2>
-        <ul id="source-list"></ul>
+      <section class="source-section" aria-labelledby="source-heading">
+        <div class="results-heading"><div><p class="eyebrow">Data freshness</p><h2 id="source-heading">Source checks</h2></div></div>
+        <ul id="source-list" class="source-list"></ul>
       </section>
     </main>
 
-    <footer class="shell footer">
-      <p>Ratings are shown only when supported by source evidence. Unknown values are not estimated.</p>
-    </footer>
+    <footer class="site-footer"><div class="shell footer-inner"><p>Only source-backed facts are shown. Unknown salary, rating, workplace, or eligibility is never estimated.</p><p>Career Radar</p></div></footer>
   </body>
 </html>
