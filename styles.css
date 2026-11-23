@@ -76,6 +76,11 @@ tbody tr:not(.detail-row):not(.empty-row):hover { background: #172536; }
 td { padding: .75rem .72rem; border-bottom: 1px solid #202d40; color: #d8e2f0; vertical-align: top; }
 .title-cell { max-width: 390px; color: var(--text); font-weight: 700; }
 .rating-cell { color: var(--accent); font-weight: 730; white-space: nowrap; }
+.glassdoor-rating-link, .glassdoor-rating-text { display: inline-flex; flex-direction: column; gap: .12rem; color: var(--accent); text-decoration: none; }
+.glassdoor-rating-link:hover, .glassdoor-rating-link:focus-visible { color: #b4fff3; text-decoration: underline; text-underline-offset: .16rem; }
+.glassdoor-rating-link:focus-visible { border-radius: .18rem; outline: 2px solid var(--accent); outline-offset: 3px; }
+.glassdoor-rating-score { font-size: .82rem; font-weight: 760; }
+.glassdoor-review-count { color: var(--muted); font-size: .68rem; font-weight: 500; }
 .muted-cell { color: var(--faint); }
 .geo-match { color: var(--accent); }
 .geo-uncertain { color: var(--warning); }

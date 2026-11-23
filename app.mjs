@@ -180,6 +180,23 @@ function appendSafeLink(parent, value, label, className) {
   return link;
 }
 
+function renderGlassdoorRating(parent, company, rating) {
+  const profileUrl = safeApplicationUrl(company?.glassdoorProfileUrl);
+  const link = document.createElement(profileUrl ? "a" : "span");
+  link.className = profileUrl ? "glassdoor-rating-link" : "glassdoor-rating-text";
+  if (profileUrl) {
+    link.href = profileUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", `Verify ${company.name} on Glassdoor: ${rating.toFixed(1)} out of 5${Number.isInteger(company.reviewCount) ? `, ${company.reviewCount.toLocaleString()} reviews` : ""}`);
+  }
+  appendText(link, "span", `${rating.toFixed(1)} / 5`, "glassdoor-rating-score");
+  if (Number.isInteger(company?.reviewCount)) {
+    appendText(link, "span", `(${company.reviewCount.toLocaleString()} reviews)`, "glassdoor-review-count");
+  }
+  parent.append(link);
+}
+
 function formatDate(value) {
   if (typeof value !== "string") return "Not recorded";
   const date = new Date(value);
@@ -196,8 +213,7 @@ function formatColumn(job, maps, key) {
     case "salary": return job.salaryOriginal || "Not listed";
     case "rating": {
       if (value == null) return "Not rated";
-      const count = Number.isInteger(company?.reviewCount) ? ` ? ${company.reviewCount.toLocaleString()} reviews` : "";
-      return `${value.toFixed(1)} / 5${count}`;
+      return `${value.toFixed(1)} / 5`;
     }
     case "status": return ({ active: "Active", pending_absence: "Pending", closed: "Closed" })[job.status] ?? "Unknown";
     case "roleFit": return ({ strong: "Strong match", adjacent: "Product-adjacent", not_relevant: "Not a match", not_screened: "Not screened" })[job.roleFit] ?? "Not screened";
@@ -414,7 +430,11 @@ function initialize() {
         if (column.key === "status") cell.className = `status-cell status-${job.status}`;
         if (column.key === "geography") cell.className = `geo-cell geo-${job.geographyDecision}`;
         if (column.key === "title") cell.className = "title-cell";
-        cell.textContent = value;
+        if (column.key === "rating" && value !== "Not rated") {
+          renderGlassdoorRating(cell, maps.companies.get(job.companyId), columnValue(job, maps, "rating"));
+        } else {
+          cell.textContent = value;
+        }
         row.append(cell);
       }
       const actionCell = document.createElement("td");
