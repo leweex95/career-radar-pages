@@ -27109,7 +27109,7 @@
     },
     {
       "glassdoorProfileUrl": "https://www.glassdoor.com/Overview/Working-at-SwissBorg-EI_IE2101863.11,20.htm",
-      "glassdoorRating": 4.0,
+      "glassdoorRating": 4,
       "id": "swissborg",
       "identityEvidence": "SwissBorg identifies itself as SwissBorg on its official careers page and organization metadata at swissborg.com.",
       "manualOverrideNote": null,
@@ -27189,7 +27189,7 @@
       "workplaceEvidence": "Hybrid; Remote; hybrid"
     }
   ],
-  "lastSuccessfulPublicationAt": "2026-11-23T08:21:34.655Z",
+  "lastSuccessfulPublicationAt": "2026-11-23T10:38:35.033Z",
   "schemaVersion": 3,
   "sources": [
     {
